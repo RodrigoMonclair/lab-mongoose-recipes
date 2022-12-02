@@ -8,7 +8,7 @@ const recipeRoute = express.Router();
 //ROTAS
 recipeRoute.get("/all-recipes", async (req, res) => {
   try {
-    const allRecipes = await RecipeModel.find({});
+    const allRecipes = await RecipeModel.find({}).populate("creator");
     return res.status(200).json(allRecipes);
   } catch (error) {
     console.log(error);
@@ -24,7 +24,8 @@ recipeRoute.post("/create-recipe/:idUser", async (req, res) => {
 
     await UserModel.findByIdAndUpdate(
       idUser,
-      {$push: {recipes: newRecipe._id}}
+      {$push: {recipes: newRecipe._id}},
+      {new: true, runValidators:true}
     )
 
     return res.status(201).json(newRecipe);
