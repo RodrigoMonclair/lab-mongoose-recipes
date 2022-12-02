@@ -63,7 +63,7 @@ recipeRoute.put("/edit-recipe/:id", async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    return res.status(200).json(updateRecipe);
+    return res.status(202).json(updateRecipe);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Algo errado com a edição" });
@@ -76,7 +76,16 @@ recipeRoute.delete("/delete-recipe/:id", async (req, res) => {
     const { id } = req.params;
     const deletedRecipe = await RecipeModel.findByIdAndDelete(id);
 
-    return res.status(200).json(deletedRecipe);
+    await UserModel.findByIdAndUpdate(
+      deletedRecipe._creator,
+      {$pull:{
+          recipes: id,
+      }
+    }, 
+    {new: true, runValidators:true}
+    )
+
+    return res.status(204).json(deletedRecipe);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Algo deu errado" });
