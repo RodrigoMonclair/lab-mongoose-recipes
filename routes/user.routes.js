@@ -1,4 +1,5 @@
 import express from "express";
+import RecipeModel from "../models/Recipe.model.js";
 import UserModel from "../models/user.model.js";
 
 const userRoute = express.Router();
@@ -47,5 +48,18 @@ userRoute.put("/edit-user/:id", async (req, res) => {
     return res.status(400).json(error.errors);
   }
 });
+
+userRoute.delete("/delete/:id", async (req, res) =>{
+    try {
+        const { id } = req.params;
+        const deletedUser = await UserModel.findByIdAndDelete(id)
+        await RecipeModel.deleteMany({creator: deletedUser})
+
+        return res.status(204).json()
+    } catch (error) {
+        console.log(error);
+    return res.status(400).json(error.errors);
+    }
+})
 
 export default userRoute;
