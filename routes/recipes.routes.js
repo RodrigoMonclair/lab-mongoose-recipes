@@ -1,5 +1,6 @@
 import express from "express";
 import RecipeModel from "../models/Recipe.model.js";
+import UserModel from "../models/user.model.js";
 
 const recipeRoute = express.Router();
 
@@ -16,9 +17,16 @@ recipeRoute.get("/all-recipes", async (req, res) => {
 });
 
 //1) criando uma receita
-recipeRoute.post("/create-recipe", async (req, res) => {
+recipeRoute.post("/create-recipe/:idUser", async (req, res) => {
   try {
-    const newRecipe = await RecipeModel.create(req.body);
+    const { idUser } = req.params;
+    const newRecipe = await RecipeModel.create({ ...req.body, creator: idUser });
+
+    await UserModel.findByIdAndUpdate(
+      idUser,
+      {$push: {recipes: newRecipe._id}}
+    )
+
     return res.status(201).json(newRecipe);
   } catch (error) {
     console.log(error);
@@ -67,7 +75,7 @@ recipeRoute.delete("/delete-recipe/:id", async (req, res) => {
     const { id } = req.params;
     const deletedRecipe = await RecipeModel.findByIdAndDelete(id);
 
-    return res.status(200).json(deletedRecipe)
+    return res.status(200).json(deletedRecipe);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Algo deu errado" });
